@@ -69,9 +69,11 @@ dist: package-skip-tests ## Copy built JAR into dist/
 # --- Container image -----------------------------------------------------------
 
 image: dist ## Build local Docker provider image (tag: keycloak-alias-guard:local)
+	@VERSION=$$($(MVN) -q -DforceStdout help:evaluate -Dexpression=project.version); \
 	$(DOCKER) buildx build \
 		--platform $(DOCKER_PLATFORM) \
 		--load \
+		--build-arg VERSION="$$VERSION" \
 		-f $(PROVIDER_DOCKERFILE) \
 		-t $(IMAGE_NAME):$(IMAGE_TAG) \
 		$(DIST_DIR)

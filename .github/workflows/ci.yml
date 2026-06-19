@@ -95,6 +95,8 @@ jobs:
           file: build/Provider.Dockerfile
           push: true
           platforms: linux/amd64
+          build-args: |
+            VERSION=${{ steps.meta.outputs.version }}
           tags: ${{ steps.docker.outputs.tags }}
           labels: ${{ steps.docker.outputs.labels }}
 
