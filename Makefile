@@ -25,7 +25,7 @@ PROVIDER_DOCKERFILE := build/Provider.Dockerfile
 
 # --- Phony targets -------------------------------------------------------------
 
-.PHONY: help test verify package package-skip-tests dist image clean version release-check sync-locales bump-major bump-minor bump-patch
+.PHONY: help test verify package package-skip-tests dist image clean version release-check sync-locales bump-major bump-minor bump-patch release release-patch release-minor release-major audit
 
 # --- Help ----------------------------------------------------------------------
 
@@ -47,6 +47,9 @@ test: ## Run unit tests (mvn test)
 
 verify: ## Run full verification pipeline (mvn verify) — same as CI test job
 	$(MVN) -B verify
+
+audit: ## Scan dependencies for known CVEs (OWASP Dependency-Check; report in target/)
+	$(MVN) -B dependency-check:check
 
 package: ## Build provider JAR with tests
 	$(MVN) -B package
@@ -101,3 +104,20 @@ bump-minor: ## Bump minor version in pom.xml (0.1.0-SNAPSHOT -> 0.2.0-SNAPSHOT)
 
 bump-major: ## Bump major version in pom.xml (0.1.0-SNAPSHOT -> 1.0.0-SNAPSHOT)
 	python3 scripts/bump-version.py major
+
+release: ## Show release targets (use release-patch, release-minor, or release-major)
+	@echo "Release targets:"
+	@echo "  make release-patch   Release current SNAPSHOT as patch (0.1.0-SNAPSHOT -> v0.1.0 -> 0.1.1-SNAPSHOT)"
+	@echo "  make release-minor   Release next minor (0.1.0-SNAPSHOT -> v0.2.0 -> 0.2.1-SNAPSHOT)"
+	@echo "  make release-major   Release next major (0.1.0-SNAPSHOT -> v1.0.0 -> 1.0.1-SNAPSHOT)"
+	@echo ""
+	@echo "Dry run: python3 scripts/release.py patch --dry-run"
+
+release-patch: ## Tag patch release, push, bump pom.xml to next SNAPSHOT
+	python3 scripts/release.py patch
+
+release-minor: ## Tag minor release, push, bump pom.xml to next SNAPSHOT
+	python3 scripts/release.py minor
+
+release-major: ## Tag major release, push, bump pom.xml to next SNAPSHOT
+	python3 scripts/release.py major

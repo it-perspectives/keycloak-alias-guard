@@ -23,6 +23,10 @@ Run `make help` for the full target list. Common targets:
 | `make help` | Show all targets |
 | `make test` | Run unit tests |
 | `make verify` | Run tests and packaging checks (`mvn verify`) |
+| `make audit` | Scan dependencies for CVEs (`dependency-check:check`) |
+
+Report: `target/dependency-check-report.html`. First run downloads the NVD database and can take several minutes. Optional: `NVD_API_KEY` env var for faster NVD sync ([nvd.nist.gov](https://nvd.nist.gov/developers/request-an-api-key)).
+
 | `make package` | Build provider JAR |
 | `make dist` | Copy JAR into `dist/` |
 | `make image` | Build local Docker provider image |
@@ -92,19 +96,37 @@ For private packages, authenticate with a GitHub PAT (`read:packages`).
 
 ## Release
 
-1. Set release version in `pom.xml` (remove `-SNAPSHOT`), or bump with `make bump-patch` / `make bump-minor` / `make bump-major`.
-2. Commit and push to `main`.
-3. Create and push an annotated tag:
+From a clean `main` branch with a `-SNAPSHOT` version in `pom.xml`:
 
-   ```bash
-   git tag -a v0.1.0 -m "v0.1.0"
-   git push origin v0.1.0
-   ```
+```bash
+make release-patch   # 0.1.0-SNAPSHOT -> v0.1.0 -> 0.1.1-SNAPSHOT
+make release-minor   # 0.1.0-SNAPSHOT -> v0.2.0 -> 0.2.1-SNAPSHOT
+make release-major   # 0.1.0-SNAPSHOT -> v1.0.0 -> 1.0.1-SNAPSHOT
+```
 
-4. CI creates a GitHub Release and attaches the JAR.
-5. Bump `pom.xml` to the next `-SNAPSHOT` on `main`.
+Each target runs preflight checks first: `-SNAPSHOT` in `pom.xml`, tag not present locally or on `origin`, clean `main` (skipped for `--dry-run`).
 
-Pre-release check:
+1. Sets the release version in `pom.xml` (removes `-SNAPSHOT`, bumps minor/major when needed).
+2. Commits, creates an annotated tag, and pushes `main` + the tag.
+3. Bumps `pom.xml` to the next `-SNAPSHOT`, commits, and pushes `main`.
+
+CI on the tag creates a GitHub Release and attaches the JAR.
+
+Preview without changes:
+
+```bash
+python3 scripts/release.py patch --dry-run
+```
+
+Local only (no push):
+
+```bash
+python3 scripts/release.py patch --no-push
+```
+
+Manual bumps without releasing: `make bump-patch` / `make bump-minor` / `make bump-major`.
+
+Pre-release check (non-SNAPSHOT version):
 
 ```bash
 make release-check

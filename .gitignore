@@ -38,3 +38,5 @@ release.properties
 .classpath
 .project
 .settings/
+
+scripts/__pycache__/
