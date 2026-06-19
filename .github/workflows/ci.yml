@@ -94,6 +94,7 @@ jobs:
           context: dist
           file: build/Provider.Dockerfile
           push: true
+          platforms: linux/amd64
           tags: ${{ steps.docker.outputs.tags }}
           labels: ${{ steps.docker.outputs.labels }}
 

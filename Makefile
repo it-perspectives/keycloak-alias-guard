@@ -13,6 +13,7 @@
 
 MVN        ?= mvn
 DOCKER     ?= docker
+DOCKER_PLATFORM ?= linux/amd64
 
 # --- Project metadata (from pom.xml) -------------------------------------------
 
@@ -68,11 +69,13 @@ dist: package-skip-tests ## Copy built JAR into dist/
 # --- Container image -----------------------------------------------------------
 
 image: dist ## Build local Docker provider image (tag: keycloak-alias-guard:local)
-	$(DOCKER) build \
+	$(DOCKER) buildx build \
+		--platform $(DOCKER_PLATFORM) \
+		--load \
 		-f $(PROVIDER_DOCKERFILE) \
 		-t $(IMAGE_NAME):$(IMAGE_TAG) \
 		$(DIST_DIR)
-	@echo "Built $(IMAGE_NAME):$(IMAGE_TAG)"
+	@echo "Built $(IMAGE_NAME):$(IMAGE_TAG) ($(DOCKER_PLATFORM))"
 
 # --- Utilities -----------------------------------------------------------------
 
